@@ -1,4 +1,4 @@
-import oscP5.*;
+ import oscP5.*;
 import netP5.*;
 import org.openkinect.*;
 import org.openkinect.processing.*;
@@ -12,7 +12,7 @@ AudioInput player;
 
 //Size of winow
 final int[] SIZE = {
-  1600, 1200
+  1700, 1080
 };
 
 
@@ -30,6 +30,7 @@ float camD0;
 float camDMax;
 float camDMin;
 float audioFactor = 1;
+//int scal;
 
 //OSC input var
 PVector touch;
@@ -194,6 +195,7 @@ void draw() {
   cam.setDistance(tran.z);
   translate(tran.x,tran.y,0);
   int buf = 0;
+  scale(scal);
   for (int x=0; x<w; x+=skip) {
     for (int y=0; y<h; y+=skip) {
       int offset = x+y*w;
@@ -203,7 +205,7 @@ void draw() {
       PVector v = depthToWorld(x, y, rawDepth);
 
       stroke(255);
-      float factor = 500;
+      float factor = 200;
       if (buf < player.bufferSize() - 1 ) {
         buf++;
       }
@@ -212,27 +214,30 @@ void draw() {
       }
       shapeMode(CENTER);
       beginShape(POINT);
-      float rightChannel = player.right.get(buf) * audioFactor;
-      float leftChannel = player.left.get(buf) * audioFactor;
+      float rightChannel = player.right.get(buf);// * audioFactor;
+      float leftChannel = player.left.get(buf);// * audioFactor;
       float rc = rightChannel;
       float lc = leftChannel;
-      rightChannel = map(rightChannel, -1, 1, 0,255);
-      leftChannel = map(leftChannel, -1, 1, 0, 255);
-      float r = rightChannel + 80;
-      float g = rightChannel * .8;
-      float b = 255 - rightChannel * .73;
-      float z = (rawDepth * rc);
+      rawDepth = rawDepth * 4;
+      rightChannel = map(rightChannel, 0, 10, 0,255);
+      leftChannel = map(leftChannel, 0, 10, 0, 255);
+      float r = rightChannel + 180;
+      float g = rightChannel * .4;
+      float b = 255 - rightChannel * .53;
+      float z = rawDepth * rc;
       if (applyRightThresh && z < rightThresh) {
         continue;
       }
       else {
-        stroke(r, g, b);
+        fill(g, r, b);
+//        stroke(0,0,255);
         vertex(v.x*factor, v.y*factor,  -1*z + -2000 );
       }
-      r = 255 - leftChannel;
-      g = leftChannel;
-      b = leftChannel * .3;
+      r = 180 + 1.03 + leftChannel;
+      g = rightChannel * 1.003;
+      b = rightChannel*rawDepth * .93;
       z = rawDepth * lc;
+      
       if (applyLeftThresh && z  < leftThresh) {
         continue;
       }
@@ -317,6 +322,14 @@ void keyPressed() {
   else if (key == '-') {
     tran.z -= 10;
     println("tran.z :: "+tran.z);
+  }
+  else if (key == 'b') {
+    scal*= 1.25;
+    println("scale :: "+scal);
+  }
+  else if (key == 'l') {
+    scal*= .65;
+    println("scale :: "+scal);
   }
 }
 
